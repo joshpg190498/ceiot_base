@@ -27,6 +27,9 @@
 
 /* HTTP Constants that aren't configurable in menuconfig */
 #define WEB_PATH "/measurement"
+#define AUTO_REGISTER_PATH "/device"
+#define DEVICE_NAME "esp32 device"
+#define API_KEY "987654321"
 
 static const char *TAG = "temp_collector";
 
@@ -39,6 +42,14 @@ static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Content-Length: %d\r\n"
     "\r\n"
     "%s";
+
+static char *AUTO_REGISTER_POST = "POST "AUTO_REGISTER_PATH" HTTP/1.0\r\n"
+    "Host: "API_IP_PORT"\r\n"
+    "User-Agent: "USER_AGENT"\r\n"
+    "Content-Type: application/x-www-form-urlencoded\r\n"
+    "Content-Length: %d\r\n"
+    "\r\n"
+    "id=%s&n=%s&k=%s";
 
 static void http_get_task(void *pvParameters)
 {
@@ -157,6 +168,77 @@ static void http_get_task(void *pvParameters)
     }
 }
 
+static void sendMacAddress() {
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+
+    char mac_str[18];
+    snprintf(mac_str, sizeof(mac_str), "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    char send_buf[256];
+    sprintf(send_buf, AUTO_REGISTER_POST,
+            (int)strlen(mac_str)+strlen(DEVICE_NAME)+strlen(API_KEY), mac_str, DEVICE_NAME, API_KEY);
+
+    struct addrinfo hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_STREAM,
+    };
+    struct addrinfo *res;
+    struct in_addr *addr;
+    int s, r;
+
+    int err = getaddrinfo(API_IP, API_PORT, &hints, &res);
+    if(err != 0 || res == NULL) {
+        ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
+        return;
+    }
+
+    addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
+    ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+
+    s = socket(res->ai_family, res->ai_socktype, 0);
+    if(s < 0) {
+        ESP_LOGE(TAG, "... Failed to allocate socket.");
+        freeaddrinfo(res);
+        return;
+    }
+
+    if(connect(s, res->ai_addr, res->ai_addrlen) != 0) {
+        ESP_LOGE(TAG, "... socket connect failed errno=%d", errno);
+        close(s);
+        freeaddrinfo(res);
+        return;
+    }
+
+    freeaddrinfo(res);
+
+    if (write(s, send_buf, strlen(send_buf)) < 0) {
+        ESP_LOGE(TAG, "... socket send failed");
+        close(s);
+        return;
+    }
+
+    struct timeval receiving_timeout;
+    receiving_timeout.tv_sec = 5;
+    receiving_timeout.tv_usec = 0;
+    if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &receiving_timeout,
+            sizeof(receiving_timeout)) < 0) {
+        ESP_LOGE(TAG, "... failed to set socket receiving timeout");
+        close(s);
+        return;
+    }
+
+    /* Read HTTP response */
+    char recv_buf[64];
+    bzero(recv_buf, sizeof(recv_buf));
+    r = read(s, recv_buf, sizeof(recv_buf)-1);
+    for(int i = 0; i < r; i++) {
+        putchar(recv_buf[i]);
+    }
+
+    close(s);
+}
+
 void app_main(void)
 {
     ESP_ERROR_CHECK( nvs_flash_init() );
@@ -165,6 +247,8 @@ void app_main(void)
     ESP_ERROR_CHECK(i2cdev_init());
 
     ESP_ERROR_CHECK(example_connect());
+
+    sendMacAddress();
 
     xTaskCreate(&http_get_task, "http_get_task", 4096, NULL, 5, NULL);
 }

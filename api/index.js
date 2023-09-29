@@ -24,7 +24,7 @@ async function getDatabase() {
 
 async function insertMeasurement(message) {
     const {insertedId} = await database.collection(collectionName).insertOne(message);
-    return insertedId;
+    return insertedId.toString();
 }
 
 async function getMeasurements() {
