@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const {MongoClient} = require("mongodb");
 const PgMem = require("pg-mem");
+const crypto = require("crypto")
 
 const db = PgMem.newDb();
 
@@ -48,10 +49,12 @@ app.post('/measurement', function (req, res) {
 });
 
 app.post('/device', function (req, res) {
-	console.log("device id    : " + req.body.id + " name        : " + req.body.n + " key         : " + req.body.k );
+    const deviceName = `Dispositivo ESP32 ${req.body.id}`
+    const deviceKey = crypto.randomBytes(8).toString('hex')
+	console.log("device id    : " + req.body.id + " name        : " + deviceName + " key         : " + deviceKey );
 
-    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+req.body.n+"', '"+req.body.k+"')");
-	res.send("received new device");
+    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+deviceName+"', '"+deviceKey+"')");
+	res.send(`key:${deviceKey}`);
 });
 
 

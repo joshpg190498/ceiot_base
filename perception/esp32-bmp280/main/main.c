@@ -28,12 +28,14 @@
 /* HTTP Constants that aren't configurable in menuconfig */
 #define WEB_PATH "/measurement"
 #define AUTO_REGISTER_PATH "/device"
-#define DEVICE_NAME "esp32 device"
-#define API_KEY "987654321"
+
+char DEVICE_ID[18] = "XX:XX:XX:XX:XX:XX";
+char API_KEY[17] = "1234567890123456";
 
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id="DEVICE_ID"&t=%0.2f&h=%0.2f";
+static char *BODY = "id=%s&t=%0.2f&h=%0.2f&key=%s";
+static char *BODY_DEVICE = "id=%s";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "Host: "API_IP_PORT"\r\n"
@@ -49,7 +51,7 @@ static char *AUTO_REGISTER_POST = "POST "AUTO_REGISTER_PATH" HTTP/1.0\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
     "Content-Length: %d\r\n"
     "\r\n"
-    "id=%s&n=%s&k=%s";
+    "%s";
 
 static void http_get_task(void *pvParameters)
 {
@@ -86,7 +88,7 @@ static void http_get_task(void *pvParameters)
             ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
 //            if (bme280p) {
                 ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
-                sprintf(body, BODY, temperature , humidity );
+                sprintf(body, BODY, DEVICE_ID, temperature , humidity, API_KEY );
                 sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
 //	    } else {
 //                sprintf(send_buf, REQUEST_POST, temperature , 0);
@@ -168,21 +170,21 @@ static void http_get_task(void *pvParameters)
     }
 }
 
-static void sendMacAddress() {
-    // leer dirección mac del módulo WiFi
-    uint8_t mac[6];
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+char* postDevice(char *mac_str) {
 
-    //arreglo mac_str de 18 caracteres
-    char mac_str[18];
-    // formatear mac
-    snprintf(mac_str, sizeof(mac_str), "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    // se declara un arreglos para el envío y la rpta
+    char body[64];
+    char send_buf[270];
+    char recv_dev_buf[256];
 
-    // se declara un arreglo buff de 256 caracteres
-    char send_buf[256];
-    //formatear cadena
+    ESP_LOGI(TAG, "Length of mac_str: %d", (int)strlen(mac_str));
+    ESP_LOGI(TAG, "mac_str ss: %s", mac_str);
+
+    //formatear la solicitud POST con la dirección MAC
+    sprintf(body, BODY_DEVICE, mac_str );
+
     sprintf(send_buf, AUTO_REGISTER_POST,
-            (int)strlen(mac_str)+strlen(DEVICE_NAME)+strlen(API_KEY), mac_str, DEVICE_NAME, API_KEY);
+            (int)strlen(body), body);
 
     // estructura ddrinfo
     struct addrinfo hints = {
@@ -198,28 +200,28 @@ static void sendMacAddress() {
    // obtener información del servidor
     int err = getaddrinfo(API_IP, API_PORT, &hints, &res);
     if(err != 0 || res == NULL) {
-        ESP_LOGE(TAG, "DEVICE: DNS lookup failed err=%d res=%p", err, res);
-        return;
+        ESP_LOGE(TAG, "POST_DEVICE: DNS lookup failed err=%d res=%p", err, res);
+        return NULL;
     }
 
     // obtener dirección ip del servidor a partir de la estructura res y de almacena en addr
     addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-    ESP_LOGI(TAG, "DEVICE: DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+    ESP_LOGI(TAG, "POST_DEVICE: DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
     // crear un socket utilizando la info proporcionada por getaddrinfo
     s = socket(res->ai_family, res->ai_socktype, 0);
     if(s < 0) {
-        ESP_LOGE(TAG, "DEVICE: ... Failed to allocate socket.");
+        ESP_LOGE(TAG, "POST_DEVICE: ... Failed to allocate socket.");
         freeaddrinfo(res);
-        return;
+        return NULL;
     }
 
     // establecer conexión con el servidor utilizando socket creado
     if(connect(s, res->ai_addr, res->ai_addrlen) != 0) {
-        ESP_LOGE(TAG, "DEVICE: ... socket connect failed errno=%d", errno);
+        ESP_LOGE(TAG, "POST_DEVICE: ... socket connect failed errno=%d", errno);
         close(s);
         freeaddrinfo(res);
-        return;
+        return NULL;
     }
 
     // libera la memoria asignada por getaddrinfo
@@ -227,9 +229,9 @@ static void sendMacAddress() {
 
     // Se envía la cadena send_buff al servidor usando el socket
     if (write(s, send_buf, strlen(send_buf)) < 0) {
-        ESP_LOGE(TAG, "DEVICE: ... socket send failed");
+        ESP_LOGE(TAG, "POST_DEVICE: ... socket send failed");
         close(s);
-        return;
+        return NULL;
     }
 
     // Tiempo de espera de 5 segundos para recebir rpta del servidor
@@ -238,20 +240,63 @@ static void sendMacAddress() {
     receiving_timeout.tv_usec = 0;
     if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &receiving_timeout,
             sizeof(receiving_timeout)) < 0) {
-        ESP_LOGE(TAG, "... failed to set socket receiving timeout");
+        ESP_LOGE(TAG, "POST_DEVICE: ... failed to set socket receiving timeout");
         close(s);
-        return;
+        return NULL;
     }
 
-    /* Read HTTP response */
-    char recv_buf[64];
-    bzero(recv_buf, sizeof(recv_buf));
-    r = read(s, recv_buf, sizeof(recv_buf)-1);
-    for(int i = 0; i < r; i++) {
-        putchar(recv_buf[i]);
+    // Leer respuesta del servidor    
+    bzero(recv_dev_buf, sizeof(recv_dev_buf));
+    r = read(s, recv_dev_buf, sizeof(recv_dev_buf)-1);
+    if(r <= 0) {
+        ESP_LOGE(TAG, "POST_DEVICE: ... failed to read from socket");
+        close(s);
+        return NULL;
     }
+
+    ESP_LOGI(TAG, "POST_DEVICE: Respuesta recibida: %s", recv_dev_buf);
 
     close(s);
+
+    char *key_str = strstr(recv_dev_buf, "key:");
+    if (key_str != NULL) {
+        key_str += 4; // Saltar el "key: "
+        ESP_LOGI(TAG, "POST_DEVICE: Clave recibida: %s", key_str);
+        return strdup(key_str); // Devolver una copia de la clave
+    }
+
+    ESP_LOGE(TAG, "POST_DEVICE: No se pudo encontrar la clave en la respuesta.");
+    return NULL; // Si no se pudo encontrar la clave en la respuesta
+}
+
+char* getMacAddress() {
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+
+    static char mac_str[18];  // Declaramos una cadena estática para almacenar la dirección MAC
+
+    snprintf(mac_str, 18, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    ESP_LOGI(TAG, "GET_MAC_ADDRESS: Esp32 MAC address is %s", mac_str); // Agregado el log
+    return mac_str;
+}
+
+void initialize_and_run()
+{
+    char *mac_str = getMacAddress();
+
+    if(mac_str != NULL) {
+        char *key_str = postDevice(mac_str);
+        if(key_str != NULL) {
+            if (strlen(mac_str) < sizeof(DEVICE_ID) && strlen(key_str) < sizeof(API_KEY)) {
+                strncpy(DEVICE_ID, mac_str, 18);
+                strncpy(API_KEY, key_str, 17);
+            } else {
+                ESP_LOGE(TAG, "initialize_and_run: DEVICE_ID or API_KEY is too small for copying");
+            }
+        }
+    }
+
+    http_get_task(NULL);
 }
 
 void app_main(void)
@@ -263,7 +308,5 @@ void app_main(void)
 
     ESP_ERROR_CHECK(example_connect());
 
-    sendMacAddress();
-
-    xTaskCreate(&http_get_task, "http_get_task", 4096, NULL, 5, NULL);
+    xTaskCreate(&initialize_and_run, "initialize_and_run", 4096, NULL, 5, NULL);
 }
