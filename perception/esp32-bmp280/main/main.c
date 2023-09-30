@@ -169,55 +169,70 @@ static void http_get_task(void *pvParameters)
 }
 
 static void sendMacAddress() {
+    // leer dirección mac del módulo WiFi
     uint8_t mac[6];
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
 
+    //arreglo mac_str de 18 caracteres
     char mac_str[18];
+    // formatear mac
     snprintf(mac_str, sizeof(mac_str), "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
+    // se declara un arreglo buff de 256 caracteres
     char send_buf[256];
+    //formatear cadena
     sprintf(send_buf, AUTO_REGISTER_POST,
             (int)strlen(mac_str)+strlen(DEVICE_NAME)+strlen(API_KEY), mac_str, DEVICE_NAME, API_KEY);
 
+    // estructura ddrinfo
     struct addrinfo hints = {
-        .ai_family = AF_INET,
-        .ai_socktype = SOCK_STREAM,
+        .ai_family = AF_INET, // ipv4
+        .ai_socktype = SOCK_STREAM, // socket
     };
+
+    // declaración de punteros y variables
     struct addrinfo *res;
     struct in_addr *addr;
     int s, r;
 
+   // obtener información del servidor
     int err = getaddrinfo(API_IP, API_PORT, &hints, &res);
     if(err != 0 || res == NULL) {
-        ESP_LOGE(TAG, "DNS lookup failed err=%d res=%p", err, res);
+        ESP_LOGE(TAG, "DEVICE: DNS lookup failed err=%d res=%p", err, res);
         return;
     }
 
+    // obtener dirección ip del servidor a partir de la estructura res y de almacena en addr
     addr = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-    ESP_LOGI(TAG, "DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
+    ESP_LOGI(TAG, "DEVICE: DNS lookup succeeded. IP=%s", inet_ntoa(*addr));
 
+    // crear un socket utilizando la info proporcionada por getaddrinfo
     s = socket(res->ai_family, res->ai_socktype, 0);
     if(s < 0) {
-        ESP_LOGE(TAG, "... Failed to allocate socket.");
+        ESP_LOGE(TAG, "DEVICE: ... Failed to allocate socket.");
         freeaddrinfo(res);
         return;
     }
 
+    // establecer conexión con el servidor utilizando socket creado
     if(connect(s, res->ai_addr, res->ai_addrlen) != 0) {
-        ESP_LOGE(TAG, "... socket connect failed errno=%d", errno);
+        ESP_LOGE(TAG, "DEVICE: ... socket connect failed errno=%d", errno);
         close(s);
         freeaddrinfo(res);
         return;
     }
 
+    // libera la memoria asignada por getaddrinfo
     freeaddrinfo(res);
 
+    // Se envía la cadena send_buff al servidor usando el socket
     if (write(s, send_buf, strlen(send_buf)) < 0) {
-        ESP_LOGE(TAG, "... socket send failed");
+        ESP_LOGE(TAG, "DEVICE: ... socket send failed");
         close(s);
         return;
     }
 
+    // Tiempo de espera de 5 segundos para recebir rpta del servidor
     struct timeval receiving_timeout;
     receiving_timeout.tv_sec = 5;
     receiving_timeout.tv_usec = 0;
