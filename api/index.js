@@ -42,19 +42,43 @@ app.use(express.static('spa/static'));
 
 const PORT = 8080;
 
-app.post('/measurement', function (req, res) {
--       console.log("device id    : " + req.body.id + " key         : " + req.body.key + " temperature : " + req.body.t + " humidity    : " + req.body.h);	
-    const {insertedId} = insertMeasurement({id:req.body.id, t:req.body.t, h:req.body.h});
-	res.send("received measurement into " +  insertedId);
+app.post('/measurement', async function (req, res) {
+    const key = req.headers.authorization
+    const deviceId = req.body.id
+    const device = db.public.one(`SELECT * FROM devices WHERE device_id='${deviceId}'`)
+    if(device) {
+        if(key === device.key) {
+            const insertedId = await insertMeasurement({id:req.body.id, t:req.body.t, h:req.body.h})
+            const message = `Registro guardado en DB con id ${insertedId} - ` + "temp: " + req.body.t + "  humidity: " + req.body.h + "  pressure : " + req.body.p
+            console.log("insertedId", insertedId)
+            console.log(message);
+            res.status(200).send(message)	
+        } else {
+            const message = "Dispositivo no autorizado para esta operación."
+            console.log(message)
+            res.status(403).send(message)
+        }
+    } else {
+        const message = "Dispositivo no registrado"
+        console.log(message)
+        res.status(403).send(message)
+    }
+
 });
 
 app.post('/device', function (req, res) {
-    const deviceName = `Dispositivo ESP32 ${req.body.id}`
-    const deviceKey = crypto.randomBytes(8).toString('hex')
-	console.log("device id    : " + req.body.id + " name        : " + deviceName + " key         : " + deviceKey );
-
-    db.public.none("INSERT INTO devices VALUES ('"+req.body.id+ "', '"+deviceName+"', '"+deviceKey+"')");
-	res.send(`key:${deviceKey}`);
+    const deviceId = req.body.id
+    const deviceName = `Dispositivo ESP32 ${deviceId}`
+    const existingDevice = db.public.one(`SELECT * FROM devices WHERE device_id='${deviceId}'`)
+    if(existingDevice) {
+        console.log('Dispositivo existente. Se enviará la key registrada en DB')
+        res.send(`key:${existingDevice.key}`);
+    } else {
+        const deviceKey = crypto.randomBytes(8).toString('hex')
+        db.public.none("INSERT INTO devices VALUES ('"+deviceId+ "', '"+deviceName+"', '"+deviceKey+"')");
+        console.log(`Dispositivo nuevo registrado con MAC ${deviceId} y Key ${deviceKey}`)
+        res.send(`key:${deviceKey}`);
+    }
 });
 
 

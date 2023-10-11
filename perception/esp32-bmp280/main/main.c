@@ -34,7 +34,7 @@ char API_KEY[17] = "1234567890123456";
 
 static const char *TAG = "temp_collector";
 
-static char *BODY = "id=%s&t=%0.2f&h=%0.2f&key=%s";
+static char *BODY = "id=%s&t=%0.2f&h=%0.2f&p=%0.2f";
 static char *BODY_DEVICE = "id=%s";
 
 static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
@@ -42,6 +42,7 @@ static char *REQUEST_POST = "POST "WEB_PATH" HTTP/1.0\r\n"
     "User-Agent: "USER_AGENT"\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
     "Content-Length: %d\r\n"
+    "Authorization: %s\r\n"
     "\r\n"
     "%s";
 
@@ -88,8 +89,8 @@ static void http_get_task(void *pvParameters)
             ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C", pressure, temperature);
 //            if (bme280p) {
                 ESP_LOGI(TAG,", Humidity: %.2f\n", humidity);
-                sprintf(body, BODY, DEVICE_ID, temperature , humidity, API_KEY );
-                sprintf(send_buf, REQUEST_POST, (int)strlen(body),body );
+                sprintf(body, BODY, DEVICE_ID, temperature , humidity, pressure);
+                sprintf(send_buf, REQUEST_POST, (int)strlen(body), API_KEY, body);
 //	    } else {
 //                sprintf(send_buf, REQUEST_POST, temperature , 0);
 //            }
@@ -174,7 +175,7 @@ char* postDevice(char *mac_str) {
 
     // se declara un arreglos para el envío y la rpta
     char body[64];
-    char send_buf[270];
+    char send_buf[256];
     char recv_dev_buf[256];
 
     ESP_LOGI(TAG, "Length of mac_str: %d", (int)strlen(mac_str));
