@@ -60,6 +60,6 @@ Objetivo del ataque: Utilizar la plataforma de monitoreo de rendimiento de compu
   - Estableceré un túnel HTTPS para mantener la comunicación segura entre el servidor de comando y control y las SBC comprometidas. [T1573.001 - Encrypted Channel: Symmetric Cryptography](https://attack.mitre.org/techniques/T1573/001/)
 
 ### Action of Objectives
-  - Utilizaré las SBC comprometidas como puntos de acceso para lanzar ataques a objetivos de mayor relevancia en la red. [T1078 - Valid Accounts] [T1071.001 - Application Layer Protocol: Web Protocols]
-  - Monitorearé la actividad en la red comprometida para identificar y explotar objetivos de mayor relevancia, como servidores de bases de datos o sistemas de información sensibles. [T1071.001 - Application Layer Protocol: Web Protocols] [T1105 - Ingress Tool Transfer]
+  - Utilizaré las SBC comprometidas como puntos de acceso para lanzar ataques a objetivos de mayor relevancia en la red. [T1078 - Valid Accounts](https://attack.mitre.org/techniques/T1078/) [T1071.001 - Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/)
+  - Monitorearé la actividad en la red comprometida para identificar y explotar objetivos de mayor relevancia, como servidores de bases de datos o sistemas de información sensibles. [T1071.001 - Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/) [T1105 - Ingress Tool Transfer](https://attack.mitre.org/techniques/T1059/)
 
