@@ -38,8 +38,10 @@ Objetivo del ataque: Utilizar correos electrónicos de phishing dirigidos a los 
 
 
 ### Reconnaissance
-  - Realizaré consultas DNS para recopilar información básica sobre los dominios utilizados por la empresa, lo cual ayudará a evitar la detección y mejorar la precisión de los correos de phishing. [T1590.002 - Gather Victim Network Information: DNS](https://attack.mitre.org/techniques/T1590/002/) 
+  - Realizaré consultas DNS para recopilar información básica sobre los dominios utilizados por la empresa, lo cual ayudará a evitar la detección y mejorar la precisión de los correos de phishing. [T1590.002 - Gather Victim Network Information: DNS](https://attack.mitre.org/techniques/T1590/002/)
+  
   - Recopilaré información personal de los usuarios del sistema y sus roles.  [T1593.001 - Search Open Websites/Domains: Social Media](https://attack.mitre.org/techniques/T1593/001/), [T1591.004 - Gather Victim Org Information: Identify Roles](https://attack.mitre.org/techniques/T1591/004/)
+  
   - Determinaré el formato de las direcciones de correo electrónico de la organización. [T1589 - Gather Victim Identity Information](https://attack.mitre.org/techniques/T1589/)
 
 ### Weaponization
@@ -56,10 +58,13 @@ Objetivo del ataque: Utilizar correos electrónicos de phishing dirigidos a los 
 
 ### Command & Control
   - Estableceré comunicaciones con un servidor de comando y control a través de un servicio web, utilizando un túnel HTTPS para mantener la comunicación segura. [T1071.001 - Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/) [T1090.002 - Proxy: External Proxy](https://attack.mitre.org/techniques/T1090/002/) [T1573.001 - Encrypted Channel: Symmetric Cryptography](https://attack.mitre.org/techniques/T1573/001/)
+  
   - Utilizar proxies para ocultar la ubicación real del servidor y dificultar el rastreo. [T1090.002 - Proxy: External Proxy](https://attack.mitre.org/techniques/T1090/002/)
 
 ### Action of Objectives
   - Extraeré credenciales de las computadoras de los administradores del sistema, buscando aquellas que permitan el acceso a las SBC. [T1059 - Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059/) [T1552 - Unsecured Credentials](https://attack.mitre.org/techniques/T1552/)
+
   - Desde las SBC, monitorearé la actividad de las redes comprometidas para identificar objetivos de mayor relevancia, como servidores, bases de datos o sistemas de información sensibles. [T1071.001 - Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/) [T1105 - Ingress Tool Transfer](https://attack.mitre.org/techniques/T1105/)
+  
   - Utilizaré las SBC comprometidas como puntos de acceso para lanzar ataques a los objetivos identificados. [T1078 - Valid Accounts](https://attack.mitre.org/techniques/T1078/) [T1071.001 - Application Layer Protocol: Web Protocols](https://attack.mitre.org/techniques/T1071/001/) [T1210 - Exploitation of Remote Services](https://attack.mitre.org/techniques/T1210/)
 
