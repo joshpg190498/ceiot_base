@@ -1,4 +1,4 @@
-# Ejercicio CiberKillChain - Ataque
+# Ejercicio CiberKillChain - Defensa
 
 ## Contenido
 
