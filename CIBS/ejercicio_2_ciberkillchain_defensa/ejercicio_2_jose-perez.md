@@ -31,36 +31,30 @@ Jose Perez Galindo
 
 ### Action of Objectives
 
-- Cambiar las contraseñas de los dispositivos comprometidos e implementar políticas de contraseñas seguras, incluyendo requisitos de complejidad, cambios periódicos y prohibición de compartir contraseñas. [M1027 - Password Policies](https://attack.mitre.org/mitigations/M1027/) 
+- Implementar políticas de contraseñas robustas que incluyan la utilización de gestores de contraseñas, autenticación multifactor (MFA) y requisitos de complejidad, además de realizar auditorías periódicas de contraseñas y forzar cambios regulares. [M1027 - Password Policies](https://attack.mitre.org/mitigations/M1027/)
 
-- Implementar monitoreo continuo y alertas para detectar y responder a intentos de acceso o actividades anómalas relacionadas con el uso de red. [M1047 - Audit](https://attack.mitre.org/mitigations/M1047/)
 
 ### Command & Control
 
-- Utilizar listas de bloqueo y servicios de inteligencia de amenazas (_Network Behavior Analysis_) para identificar y bloquear dominios y direcciones IP asociadas con servidores y/o usuarios desconocidos. [M1050 - Exploit Protection](https://attack.mitre.org/mitigations/M1050/)
-  
-- Implementar soluciones de monitoreo de red que puedan identificar y analizar tráfico sospechoso. De esta manera hallar patrones de tráfico inusuales que podrían indicar el uso de proxies y VPNs. [M1037 - Filter Network Traffic](https://attack.mitre.org/mitigations/M1037/)
+- Utilizar soluciones de monitoreo de red avanzadas que incluyan análisis de tráfico en tiempo real, detección de anomalías y herramientas de inteligencia de amenazas para identificar y bloquear comunicaciones sospechosas que puedan indicar el uso de proxies, servidores y/o usuarios desconocidos y VPNs maliciosos. [M1037 - Filter Network Traffic](https://attack.mitre.org/mitigations/M1037/)
+
 
 ### Installation
 
-- Instalar soluciones de seguridad como antivirus y antimalware que puedan detectar y bloquear la instalación de software malicioso. Así mismo, Implementar herramientas para prevenir la ejecución de scripts no aprobados. [M1049 - Antivirus/Antimalware](https://attack.mitre.org/mitigations/M1049/), [M1038 - Execution Prevention](https://attack.mitre.org/mitigations/M1038/)
-
-- Configurar políticas que aseguren que solo los administradores TI puedan instalar software. Limitar los privilegios de los usuarios regulares para prevenir la instalación de software no autorizado. [M1026 - Privileged Account Management](https://attack.mitre.org/mitigations/M1026/)
+- Implementar una gestión robusta de cuentas privilegiadas, utilizando herramientas de control de acceso basadas en roles (RBAC) y autenticación multifactor (MFA) para asegurar que solo los administradores de TI autorizados puedan instalar software, minimizando el riesgo de instalación no autorizada. [M1026 - Privileged Account Management](https://attack.mitre.org/mitigations/M1026/)
 
 ### Exploitation
 
-- Realizar programas de concienciación y formación en seguridad para educar a los usuarios sobre los riesgos de hacer clic en enlaces y abrir archivos adjuntos de fuentes desconocidas o no confiables. [M1017 - User Training](https://attack.mitre.org/mitigations/M1017/)
+- Desarrollar un programa integral y continuo de formación en ciberseguridad para todos los empleados, con un enfoque especial en la identificación de correos electrónicos de phishing y la importancia de no hacer clic en enlaces ni abrir archivos adjuntos de fuentes desconocidas. [M1017 - User Training](https://attack.mitre.org/mitigations/M1017/)
 
-### Delivery
+### Delivery 
 
-- Configurar filtros de spam y antivirus en los servidores de correo para inspeccionar y analizar los correos electrónicos entrantes en busca de contenido malicioso. [M1031 - Network Intrusion Prevention](https://attack.mitre.org/mitigations/M1031/)
-  
-- Realizar programas de concienciación y formación en seguridad para educar a los usuarios, especialmente a los administradores del sistema, sobre los riesgos del phishing y cómo identificar correos electrónicos sospechosos. [M1017 - User Training](https://attack.mitre.org/mitigations/M1017/)
+- Implementar un sistema de prevención de intrusiones en la red que incluya filtrado de correo electrónico, análisis de contenido, y sandboxing para analizar y detener correos electrónicos maliciosos antes de que lleguen a los usuarios. [M1031 - Network Intrusion Prevention](https://attack.mitre.org/mitigations/M1031/)
 
-### Weaponization
+### Weaponization (editado)
 
-- Fuera del alcance de las defensas y controles de la empresa.
+-  Implementar políticas y tecnologías que prevengan la ejecución de archivos y scripts no autorizados. Esto incluye utilizar listas blancas de aplicaciones para permitir solo la ejecución de software aprobado y conocido, así como el uso de soluciones de control de aplicaciones que bloqueen la ejecución de cualquier software no autorizado. [M1038 - Execution Prevention]([https://attack.mitre.org/mitigations/M1049/](https://attack.mitre.org/mitigations/M1038/)
 
 ### Reconnaissance
 
-- Los esfuerzos deben centrarse en reducir al mínimo la cantidad y la sensibilidad de los datos disponibles para las partes externas. Educando a los empleados sobre la importancia de no compartir información personal en sitios abieirtos. [M1056 - Pre-compromise](https://attack.mitre.org/mitigations/M1056/), [M1017 - User Training](https://attack.mitre.org/mitigations/M1017/)
+- Llevar a cabo una formación continua y detallada para empleados sobre la importancia de proteger la información personal y corporativa, incluyendo prácticas seguras en redes sociales y la minimización de la información disponible públicamente sobre la organización y sus empleados. [M1056 - Pre-compromise](https://attack.mitre.org/mitigations/M1056/), [M1017 - User Training](https://attack.mitre.org/mitigations/M1017/)
