@@ -53,7 +53,7 @@ Jose Perez Galindo
 
 ### Weaponization (editado)
 
--  Implementar políticas y tecnologías que prevengan la ejecución de archivos y scripts no autorizados. Esto incluye utilizar listas blancas de aplicaciones para permitir solo la ejecución de software aprobado y conocido, así como el uso de soluciones de control de aplicaciones que bloqueen la ejecución de cualquier software no autorizado. [M1038 - Execution Prevention]([https://attack.mitre.org/mitigations/M1049/](https://attack.mitre.org/mitigations/M1038/)
+-  Implementar políticas y tecnologías que prevengan la ejecución de archivos y scripts no autorizados. Esto incluye utilizar listas blancas de aplicaciones para permitir solo la ejecución de software aprobado y conocido, así como el uso de soluciones de control de aplicaciones que bloqueen la ejecución de cualquier software no autorizado. [M1038 - Execution Prevention](https://attack.mitre.org/mitigations/M1038/)
 
 ### Reconnaissance
 
